@@ -206,4 +206,5 @@ $RECYCLE.BIN/
 # End of https://www.gitignore.io/api/sbt,macos,linux,scala,eclipse,windows,intellij
 
 .idea
-output
+derby.log
+metastore_db
