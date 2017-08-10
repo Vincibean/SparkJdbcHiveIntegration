@@ -63,7 +63,7 @@ object Main {
     connectionProperties.put("password", "")
 
     val planes = spark.read
-      .jdbc("jdbc:h2:file:./target/planes", "PLANE", connectionProperties)
+      .jdbc("jdbc:h2:file:./target/planes", "PLANES", connectionProperties)
 
     planes.createOrReplaceTempView("planes")
 

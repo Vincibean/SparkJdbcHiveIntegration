@@ -1,4 +1,4 @@
-create table PLANE (
+create table PLANES (
     TAILNUM varchar(100) not null,
     TYPE varchar(100),
     MANUFACTURER varchar(100),
