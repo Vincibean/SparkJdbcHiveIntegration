@@ -3,6 +3,7 @@ package org.vincibean.spark.jdbc.hive.integration
 import java.util.Properties
 
 import org.apache.spark.sql.SparkSession
+import org.vincibean.spark.jdbc.hive.integration.domain.Plane
 
 object Main {
 
@@ -62,8 +63,11 @@ object Main {
     connectionProperties.put("user", "SA")
     connectionProperties.put("password", "")
 
+    import spark.implicits._
+
     val planes = spark.read
       .jdbc("jdbc:h2:file:./target/planes", "PLANES", connectionProperties)
+      .as[Plane]
 
     planes.createOrReplaceTempView("planes")
 
