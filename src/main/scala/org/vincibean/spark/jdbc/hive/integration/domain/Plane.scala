@@ -1,11 +1,11 @@
 package org.vincibean.spark.jdbc.hive.integration.domain
 
 case class Plane(tailNum: String,
-                 kind: String,
+                 `type`: String,
                  manufacturer: String,
-                 issueDate: String,
+                 issue_date: String,
                  model: String,
                  status: String,
-                 aircraftType: String,
-                 engineType: String,
-                 year: Int)
+                 aircraft_type: String,
+                 engine_type: String,
+                 construction_year: String)
