@@ -3,14 +3,12 @@ package org.vincibean.spark.jdbc.hive.integration
 import java.util.Properties
 
 import org.apache.spark.sql.SparkSession
-import org.vincibean.spark.jdbc.hive.integration.domain.Plane
+import org.vincibean.spark.jdbc.hive.integration.domain.{Flight, Plane}
 
 object Main {
 
   def main(args: Array[String]): Unit = {
-
     val warehouseLocation = "file:${system:user.dir}/spark-warehouse"
-
     val spark = SparkSession
       .builder()
       .appName("Spark JDBC Hive Integration")
@@ -18,64 +16,59 @@ object Main {
       .master("local[*]")
       .enableHiveSupport()
       .getOrCreate()
-
-    import spark.sql
-
-    sql(
-      """
+    try {
+      import spark.sql
+      import spark.implicits._
+      // Determine the current working directory. If not defined default to "/tmp".
+      val pwd = sys.props.get("user.dir").getOrElse("/tmp")
+      sql(
+        s"""
         CREATE EXTERNAL TABLE IF NOT EXISTS flights (
         year INT,
         month INT,
-        day_of_month INT,
-        day_of_week INT,
-        departure_time INT,
-        scheduled_dep_time INT,
-        arrival_time INT,
-        scheduled_arrival_time INT,
-        unique_carrier STRING,
-        flight_num INT,
-        tail_num STRING,
-        actual_elapsed_time INT,
-        scheduled_elapsed_time INT,
-        air_time INT,
-        arrival_delay INT,
-        departure_delay INT,
+        dayofmonth INT,
+        dayofweek INT,
+        departuretime INT,
+        scheduleddeptime INT,
+        arrivaltime INT,
+        scheduledarrivaltime INT,
+        uniquecarrier STRING,
+        flightnum INT,
+        tailnum STRING,
+        actualelapsedtime INT,
+        scheduledelapsedtime INT,
+        airtime INT,
+        arrivaldelay INT,
+        departuredelay INT,
         origin STRING,
         dest STRING,
         distance INT,
-        taxi_in_time INT,
-        taxi_out_time INT,
+        taxiintime INT,
+        taxiouttime INT,
         cancelled INT,
-        cancellation_code STRING,
+        cancellationcode STRING,
         diverted INT,
-        carrier_delay INT,
-        weather_delay INT,
-        nas_delay INT,
-        security_delay INT,
-        late_aircraft_delay INT)
+        carrierdelay INT,
+        weatherdelay INT,
+        nasdelay INT,
+        securitydelay INT,
+        lateaircraftdelay INT)
         row format delimited fields terminated by '|'
-        stored as textfile LOCATION 'src/main/resources/airline-flights/flights' """
-    )
-
-    Class.forName("org.h2.Driver") // We need to load the H2 Driver
-
-    val connectionProperties = new Properties()
-    connectionProperties.put("user", "SA")
-    connectionProperties.put("password", "")
-
-    import spark.implicits._
-
-    val planes = spark.read
-      .jdbc("jdbc:h2:file:./target/planes", "PLANES", connectionProperties)
-      .as[Plane]
-
-    planes.createOrReplaceTempView("planes")
-
-    sql(
-      "SELECT * FROM flights JOIN planes ON flights.tailNum = planes.tailNum")
-      .show()
-
-    spark.stop()
+        stored as textfile LOCATION '$pwd/src/main/resources/airline-flights/flights' """
+      )
+      val flights = sql("SELECT * FROM flights").map(Flight.parse)
+      flights.createOrReplaceTempView("flights")
+      // We need to load the H2 Driver first
+      Class.forName("org.h2.Driver")
+      val connectionProperties = new Properties()
+      connectionProperties.put("user", "SA")
+      connectionProperties.put("password", "")
+      val planes = spark.read
+        .jdbc("jdbc:h2:file:./target/planes", "PLANES", connectionProperties)
+        .as[Plane]
+      planes.createOrReplaceTempView("planes")
+      flights.join(planes, flights("tailnum") === planes("TAILNUM")).show()
+    } finally { spark.stop() }
   }
 
 }
