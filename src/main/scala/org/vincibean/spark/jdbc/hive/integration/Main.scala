@@ -57,7 +57,6 @@ object Main {
         stored as textfile LOCATION '$pwd/src/main/resources/airline-flights/flights' """
       )
       val flights = sql("SELECT * FROM flights").map(Flight.parse)
-      flights.createOrReplaceTempView("flights")
       // We need to load the H2 Driver first
       Class.forName("org.h2.Driver")
       val connectionProperties = new Properties()
@@ -66,7 +65,6 @@ object Main {
       val planes = spark.read
         .jdbc("jdbc:h2:file:./target/planes", "PLANES", connectionProperties)
         .as[Plane]
-      planes.createOrReplaceTempView("planes")
       flights.join(planes, flights("tailnum") === planes("TAILNUM")).show()
     } finally { spark.stop() }
   }
