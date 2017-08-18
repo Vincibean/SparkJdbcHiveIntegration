@@ -3,6 +3,7 @@ package org.vincibean.spark.jdbc.hive.integration
 import java.util.Properties
 
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions.desc
 import org.vincibean.spark.jdbc.hive.integration.domain.{Flight, Plane}
 
 object Main {
@@ -65,7 +66,23 @@ object Main {
       val planes = spark.read
         .jdbc("jdbc:h2:file:./target/planes", "PLANES", connectionProperties)
         .as[Plane]
-      flights.join(planes, flights("tailnum") === planes("TAILNUM")).show()
+      val res = flights
+        .as("f")
+        .filter($"f.time.arrivaldelay" > 15)
+        .join(planes.as("p"), $"f.tailnum" === $"p.TAILNUM")
+        .select(
+          $"p.TAILNUM".as("tailNum"),
+          $"f.time.actualelapsedtime".as("flightTime"),
+          $"f.time.arrivaldelay".as("delay"),
+          ($"f.time.arrivaldelay" / $"f.time.actualelapsedtime").as("ratio")
+        )
+      res.write.jdbc("jdbc:h2:file:./target/result",
+                     "RESULT",
+                     connectionProperties)
+      spark.read
+        .jdbc("jdbc:h2:file:./target/result", "RESULT", connectionProperties)
+        .orderBy(desc("ratio"))
+        .show()
     } finally { spark.stop() }
   }
 
