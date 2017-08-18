@@ -69,12 +69,12 @@ object Main {
       val res = flights
         .as("f")
         .filter($"f.time.arrivaldelay" > 15)
-        .join(planes.as("p"), $"f.tailnum" === $"p.tailNum")
+        .join(planes.as("p"), $"f.tailNum" === $"p.tailNum")
         .select(
           $"p.tailNum".as("tailNum"),
-          $"f.time.actualelapsedtime".as("flightTime"),
-          $"f.time.arrivaldelay".as("delay"),
-          ($"f.time.arrivaldelay" / $"f.time.actualelapsedtime").as("ratio")
+          $"f.time.actualElapsedTime".as("flightTime"),
+          $"f.time.arrivalDelay".as("delay"),
+          ($"f.time.arrivalDelay" / $"f.time.actualElapsedTime").as("ratio")
         )
       res.write.jdbc("jdbc:h2:file:./target/result",
                      "RESULT",

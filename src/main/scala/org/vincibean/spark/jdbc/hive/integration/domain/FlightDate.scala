@@ -8,10 +8,10 @@ object FlightDate {
   def parse(row: Row): FlightDate = FlightDate(
     year = row.getIntOrElse(row.fieldIndex("year"), -1),
     month = row.getIntOrElse(row.fieldIndex("month"), -1),
-    dayofmonth = row.getIntOrElse(row.fieldIndex("dayofmonth"), -1),
-    dayofweek = row.getIntOrElse(row.fieldIndex("dayofweek"), -1)
+    dayOfMonth = row.getIntOrElse(row.fieldIndex("dayofmonth"), -1),
+    dayOfWeek = row.getIntOrElse(row.fieldIndex("dayofweek"), -1)
   )
 
 }
 
-case class FlightDate(year: Int, month: Int, dayofmonth: Int, dayofweek: Int)
+case class FlightDate(year: Int, month: Int, dayOfMonth: Int, dayOfWeek: Int)

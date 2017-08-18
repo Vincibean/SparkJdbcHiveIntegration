@@ -6,32 +6,32 @@ import org.vincibean.spark.jdbc.hive.integration.util.NullCellHandler.RowWithDef
 object FlightTime {
 
   def parse(row: Row): FlightTime = FlightTime(
-    departuretime = row.getIntOrElse(row.fieldIndex("departuretime"), -1),
-    scheduleddeptime = row.getIntOrElse(row.fieldIndex("scheduleddeptime"), -1),
-    arrivaltime = row.getIntOrElse(row.fieldIndex("arrivaltime"), -1),
-    scheduledarrivaltime =
+    departureTime = row.getIntOrElse(row.fieldIndex("departuretime"), -1),
+    scheduledDepTime = row.getIntOrElse(row.fieldIndex("scheduleddeptime"), -1),
+    arrivalTime = row.getIntOrElse(row.fieldIndex("arrivaltime"), -1),
+    scheduledArrivalTime =
       row.getIntOrElse(row.fieldIndex("scheduledarrivaltime"), -1),
-    actualelapsedtime =
+    actualElapsedTime =
       row.getIntOrElse(row.fieldIndex("actualelapsedtime"), -1),
-    scheduledelapsedtime =
+    scheduledElapsedTime =
       row.getIntOrElse(row.fieldIndex("scheduledelapsedtime"), -1),
-    airtime = row.getIntOrElse(row.fieldIndex("airtime"), -1),
-    arrivaldelay = row.getIntOrElse(row.fieldIndex("arrivaldelay"), -1),
-    departuredelay = row.getIntOrElse(row.fieldIndex("departuredelay"), -1),
-    taxiintime = row.getIntOrElse(row.fieldIndex("taxiintime"), -1),
-    taxiouttime = row.getIntOrElse(row.fieldIndex("taxiouttime"), -1)
+    airTime = row.getIntOrElse(row.fieldIndex("airtime"), -1),
+    arrivalDelay = row.getIntOrElse(row.fieldIndex("arrivaldelay"), -1),
+    departureDelay = row.getIntOrElse(row.fieldIndex("departuredelay"), -1),
+    taxiInTime = row.getIntOrElse(row.fieldIndex("taxiintime"), -1),
+    taxiOutTime = row.getIntOrElse(row.fieldIndex("taxiouttime"), -1)
   )
 
 }
 
-case class FlightTime(departuretime: Int,
-                      scheduleddeptime: Int,
-                      arrivaltime: Int,
-                      scheduledarrivaltime: Int,
-                      actualelapsedtime: Int,
-                      scheduledelapsedtime: Int,
-                      airtime: Int,
-                      arrivaldelay: Int,
-                      departuredelay: Int,
-                      taxiintime: Int,
-                      taxiouttime: Int)
+case class FlightTime(departureTime: Int,
+                      scheduledDepTime: Int,
+                      arrivalTime: Int,
+                      scheduledArrivalTime: Int,
+                      actualElapsedTime: Int,
+                      scheduledElapsedTime: Int,
+                      airTime: Int,
+                      arrivalDelay: Int,
+                      departureDelay: Int,
+                      taxiInTime: Int,
+                      taxiOutTime: Int)
