@@ -69,9 +69,9 @@ object Main {
       val res = flights
         .as("f")
         .filter($"f.time.arrivaldelay" > 15)
-        .join(planes.as("p"), $"f.tailnum" === $"p.TAILNUM")
+        .join(planes.as("p"), $"f.tailnum" === $"p.tailNum")
         .select(
-          $"p.TAILNUM".as("tailNum"),
+          $"p.tailNum".as("tailNum"),
           $"f.time.actualelapsedtime".as("flightTime"),
           $"f.time.arrivaldelay".as("delay"),
           ($"f.time.arrivaldelay" / $"f.time.actualelapsedtime").as("ratio")
