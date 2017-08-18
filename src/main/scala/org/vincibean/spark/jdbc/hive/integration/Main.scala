@@ -68,7 +68,9 @@ object Main {
         .as[Plane]
       val res = flights
         .as("f")
-        .filter($"f.time.arrivaldelay" > 15)
+        .filter($"f.cancelled" === 0)
+        .filter($"f.time.actualElapsedTime" > 0)
+        .filter($"f.time.arrivalDelay" > 15)
         .join(planes.as("p"), $"f.tailNum" === $"p.tailNum")
         .select(
           $"p.tailNum".as("tailNum"),
