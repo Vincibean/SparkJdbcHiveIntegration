@@ -1,25 +1,28 @@
 package org.vincibean.spark.jdbc.hive.integration.domain
 
 import org.apache.spark.sql.Row
-import org.vincibean.spark.jdbc.hive.integration.util.NullCellHandler.RowWithDefaults
+import org.vincibean.spark.jdbc.hive.integration.util.NullCellHandler._
 
 object FlightTime {
 
   def parse(row: Row): FlightTime = FlightTime(
-    departureTime = row.getIntOrElse(row.fieldIndex("departuretime"), -1),
-    scheduledDepTime = row.getIntOrElse(row.fieldIndex("scheduleddeptime"), -1),
-    arrivalTime = row.getIntOrElse(row.fieldIndex("arrivaltime"), -1),
+    departureTime =
+      row.getIntOrElse(row.fieldIndex("departuretime"), defaultInt),
+    scheduledDepTime =
+      row.getIntOrElse(row.fieldIndex("scheduleddeptime"), defaultInt),
+    arrivalTime = row.getIntOrElse(row.fieldIndex("arrivaltime"), defaultInt),
     scheduledArrivalTime =
-      row.getIntOrElse(row.fieldIndex("scheduledarrivaltime"), -1),
+      row.getIntOrElse(row.fieldIndex("scheduledarrivaltime"), defaultInt),
     actualElapsedTime =
-      row.getIntOrElse(row.fieldIndex("actualelapsedtime"), -1),
+      row.getIntOrElse(row.fieldIndex("actualelapsedtime"), defaultInt),
     scheduledElapsedTime =
-      row.getIntOrElse(row.fieldIndex("scheduledelapsedtime"), -1),
-    airTime = row.getIntOrElse(row.fieldIndex("airtime"), -1),
-    arrivalDelay = row.getIntOrElse(row.fieldIndex("arrivaldelay"), -1),
-    departureDelay = row.getIntOrElse(row.fieldIndex("departuredelay"), -1),
-    taxiInTime = row.getIntOrElse(row.fieldIndex("taxiintime"), -1),
-    taxiOutTime = row.getIntOrElse(row.fieldIndex("taxiouttime"), -1)
+      row.getIntOrElse(row.fieldIndex("scheduledelapsedtime"), defaultInt),
+    airTime = row.getIntOrElse(row.fieldIndex("airtime"), defaultInt),
+    arrivalDelay = row.getIntOrElse(row.fieldIndex("arrivaldelay"), defaultInt),
+    departureDelay =
+      row.getIntOrElse(row.fieldIndex("departuredelay"), defaultInt),
+    taxiInTime = row.getIntOrElse(row.fieldIndex("taxiintime"), defaultInt),
+    taxiOutTime = row.getIntOrElse(row.fieldIndex("taxiouttime"), defaultInt)
   )
 
 }
