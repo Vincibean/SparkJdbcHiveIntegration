@@ -27,4 +27,10 @@ object Dependencies {
     lazy val dependencies: Seq[ModuleID] = Seq(organization % "h2" % version)
   }
 
+  object typesafe extends Dependency {
+    lazy val organization: String = "com.typesafe"
+    lazy val version: String = "1.3.1"
+    lazy val dependencies: Seq[ModuleID] = Seq(organization % "config" % version)
+  }
+
 }
