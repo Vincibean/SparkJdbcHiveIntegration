@@ -2,7 +2,7 @@ package org.vincibean.spark.jdbc.hive.integration
 
 import java.util.Properties
 
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{Dataset, SparkSession}
 import org.apache.spark.sql.functions.desc
 import org.vincibean.spark.jdbc.hive.integration.domain.{Flight, Plane}
 
@@ -36,12 +36,37 @@ object Main {
       .enableHiveSupport()
       .getOrCreate()
     try {
-      import spark.sql
+      val flights = readFlightDataset(spark)
+      val planes = readPlaneDataset(spark)
       import spark.implicits._
-      // Determine the current working directory. If not defined default to "/tmp".
-      val pwd = sys.props.get("user.dir").getOrElse(defaultUserDir)
-      sql(
-        s"""
+      flights
+        .as("f")
+        .filter($"f.cancelled" === 0)
+        .filter($"f.time.actualElapsedTime" > 0)
+        .filter($"f.time.arrivalDelay" > 15)
+        .join(planes.as("p"), $"f.tailNum" === $"p.tailNum")
+        .select(
+          $"p.tailNum".as("tailNum"),
+          $"f.time.actualElapsedTime".as("flightTime"),
+          $"f.time.arrivalDelay".as("delay"),
+          ($"f.time.arrivalDelay" / $"f.time.actualElapsedTime").as("ratio")
+        )
+        .write
+        .jdbc(resultJdbcAddress, resultTable, connectionProperties)
+      spark.read
+        .jdbc(resultJdbcAddress, resultTable, connectionProperties)
+        .orderBy(desc("ratio"))
+        .show()
+    } finally { spark.stop() }
+  }
+
+  private def readFlightDataset(spark: SparkSession): Dataset[Flight] = {
+    import spark.sql
+    import spark.implicits._
+    // Determine the current working directory. If not defined default to "/tmp".
+    val pwd = sys.props.get("user.dir").getOrElse(defaultUserDir)
+    sql(
+      s"""
         CREATE EXTERNAL TABLE IF NOT EXISTS flights (
         year INT,
         month INT,
@@ -74,31 +99,17 @@ object Main {
         lateaircraftdelay INT)
         row format delimited fields terminated by '|'
         stored as textfile LOCATION '$pwd/src/main/resources/airline-flights/flights' """
-      )
-      val flights = sql("SELECT * FROM flights").map(Flight.parse)
-      // We need to load the H2 Driver first
-      Class.forName(jdbcDriver)
-      val planes = spark.read
-        .jdbc(planesJdbcAddress, planesTable, connectionProperties)
-        .as[Plane]
-      val res = flights
-        .as("f")
-        .filter($"f.cancelled" === 0)
-        .filter($"f.time.actualElapsedTime" > 0)
-        .filter($"f.time.arrivalDelay" > 15)
-        .join(planes.as("p"), $"f.tailNum" === $"p.tailNum")
-        .select(
-          $"p.tailNum".as("tailNum"),
-          $"f.time.actualElapsedTime".as("flightTime"),
-          $"f.time.arrivalDelay".as("delay"),
-          ($"f.time.arrivalDelay" / $"f.time.actualElapsedTime").as("ratio")
-        )
-      res.write.jdbc(resultJdbcAddress, resultTable, connectionProperties)
-      spark.read
-        .jdbc(resultJdbcAddress, resultTable, connectionProperties)
-        .orderBy(desc("ratio"))
-        .show()
-    } finally { spark.stop() }
+    )
+    sql("SELECT * FROM flights").map(Flight.parse)
+  }
+
+  private def readPlaneDataset(spark: SparkSession): Dataset[Plane] = {
+    // We need to load the H2 Driver first
+    Class.forName(jdbcDriver)
+    import spark.implicits._
+    spark.read
+      .jdbc(planesJdbcAddress, planesTable, connectionProperties)
+      .as[Plane]
   }
 
 }
