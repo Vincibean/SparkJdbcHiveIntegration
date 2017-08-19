@@ -8,20 +8,31 @@ import org.vincibean.spark.jdbc.hive.integration.domain.{Flight, Plane}
 
 object Main {
 
+  val appName = "Spark JDBC Hive Integration"
+  val warehouseLocation = "file:${system:user.dir}/spark-warehouse"
+  val master = "local[*]"
+  val defaultUserDir = "/tmp"
+  val jdbcDriver = "org.h2.Driver"
+  val username = "SA"
+  val password = ""
+  val planesJdbcAddress = "jdbc:h2:file:./target/planes"
+  val planesTable = "PLANES"
+  val resultJdbcAddress = "jdbc:h2:file:./target/result"
+  val resultTable = "RESULT"
+
   def main(args: Array[String]): Unit = {
-    val warehouseLocation = "file:${system:user.dir}/spark-warehouse"
     val spark = SparkSession
       .builder()
-      .appName("Spark JDBC Hive Integration")
+      .appName(appName)
       .config("spark.sql.warehouse.dir", warehouseLocation)
-      .master("local[*]")
+      .master(master)
       .enableHiveSupport()
       .getOrCreate()
     try {
       import spark.sql
       import spark.implicits._
       // Determine the current working directory. If not defined default to "/tmp".
-      val pwd = sys.props.get("user.dir").getOrElse("/tmp")
+      val pwd = sys.props.get("user.dir").getOrElse(defaultUserDir)
       sql(
         s"""
         CREATE EXTERNAL TABLE IF NOT EXISTS flights (
@@ -59,12 +70,12 @@ object Main {
       )
       val flights = sql("SELECT * FROM flights").map(Flight.parse)
       // We need to load the H2 Driver first
-      Class.forName("org.h2.Driver")
+      Class.forName(jdbcDriver)
       val connectionProperties = new Properties()
-      connectionProperties.put("user", "SA")
-      connectionProperties.put("password", "")
+      connectionProperties.put("user", username)
+      connectionProperties.put("password", password)
       val planes = spark.read
-        .jdbc("jdbc:h2:file:./target/planes", "PLANES", connectionProperties)
+        .jdbc(planesJdbcAddress, planesTable, connectionProperties)
         .as[Plane]
       val res = flights
         .as("f")
@@ -78,11 +89,9 @@ object Main {
           $"f.time.arrivalDelay".as("delay"),
           ($"f.time.arrivalDelay" / $"f.time.actualElapsedTime").as("ratio")
         )
-      res.write.jdbc("jdbc:h2:file:./target/result",
-                     "RESULT",
-                     connectionProperties)
+      res.write.jdbc(resultJdbcAddress, resultTable, connectionProperties)
       spark.read
-        .jdbc("jdbc:h2:file:./target/result", "RESULT", connectionProperties)
+        .jdbc(resultJdbcAddress, resultTable, connectionProperties)
         .orderBy(desc("ratio"))
         .show()
     } finally { spark.stop() }
