@@ -20,6 +20,13 @@ object Main {
   val resultJdbcAddress = "jdbc:h2:file:./target/result"
   val resultTable = "RESULT"
 
+  val connectionProperties: Properties = {
+    val props = new Properties()
+    props.put("user", username)
+    props.put("password", password)
+    props
+  }
+
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
       .builder()
@@ -71,9 +78,6 @@ object Main {
       val flights = sql("SELECT * FROM flights").map(Flight.parse)
       // We need to load the H2 Driver first
       Class.forName(jdbcDriver)
-      val connectionProperties = new Properties()
-      connectionProperties.put("user", username)
-      connectionProperties.put("password", password)
       val planes = spark.read
         .jdbc(planesJdbcAddress, planesTable, connectionProperties)
         .as[Plane]
