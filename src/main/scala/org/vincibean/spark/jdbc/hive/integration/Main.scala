@@ -5,34 +5,28 @@ import java.util.Properties
 import org.apache.spark.sql.{Dataset, SparkSession}
 import org.apache.spark.sql.functions.desc
 import org.vincibean.spark.jdbc.hive.integration.domain.{Flight, Plane}
+import com.typesafe.config.{Config, ConfigFactory}
 
 object Main {
 
-  val appName = "Spark JDBC Hive Integration"
-  val warehouseLocation = "file:${system:user.dir}/spark-warehouse"
-  val master = "local[*]"
-  val defaultUserDir = "/tmp"
-  val jdbcDriver = "org.h2.Driver"
-  val username = "SA"
-  val password = ""
-  val planesJdbcAddress = "jdbc:h2:file:./target/planes"
-  val planesTable = "PLANES"
-  val resultJdbcAddress = "jdbc:h2:file:./target/result"
-  val resultTable = "RESULT"
+  val conf: Config = ConfigFactory.load()
+  val resultJdbcUrl: String = conf.getString("jdbc.result.url")
+  val resultTable: String = conf.getString("jdbc.result.table")
 
   val connectionProperties: Properties = {
     val props = new Properties()
-    props.put("user", username)
-    props.put("password", password)
+    props.put("user", conf.getString("jdbc.username"))
+    props.put("password", conf.getString("jdbc.password"))
     props
   }
 
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
       .builder()
-      .appName(appName)
-      .config("spark.sql.warehouse.dir", warehouseLocation)
-      .master(master)
+      .appName(conf.getString("application.name"))
+      .config("spark.sql.warehouse.dir",
+              conf.getString("application.warehouse"))
+      .master(conf.getString("application.master"))
       .enableHiveSupport()
       .getOrCreate()
     try {
@@ -52,9 +46,9 @@ object Main {
           ($"f.time.arrivalDelay" / $"f.time.actualElapsedTime").as("ratio")
         )
         .write
-        .jdbc(resultJdbcAddress, resultTable, connectionProperties)
+        .jdbc(resultJdbcUrl, resultTable, connectionProperties)
       spark.read
-        .jdbc(resultJdbcAddress, resultTable, connectionProperties)
+        .jdbc(resultJdbcUrl, resultTable, connectionProperties)
         .orderBy(desc("ratio"))
         .show()
     } finally { spark.stop() }
@@ -64,7 +58,9 @@ object Main {
     import spark.sql
     import spark.implicits._
     // Determine the current working directory. If not defined default to "/tmp".
-    val pwd = sys.props.get("user.dir").getOrElse(defaultUserDir)
+    val pwd = sys.props
+      .get("user.dir")
+      .getOrElse(conf.getString("application.defaultWorkingDir"))
     sql(
       s"""
         CREATE EXTERNAL TABLE IF NOT EXISTS flights (
@@ -105,10 +101,12 @@ object Main {
 
   private def readPlaneDataset(spark: SparkSession): Dataset[Plane] = {
     // We need to load the H2 Driver first
-    Class.forName(jdbcDriver)
+    Class.forName(conf.getString("jdbc.driver"))
     import spark.implicits._
     spark.read
-      .jdbc(planesJdbcAddress, planesTable, connectionProperties)
+      .jdbc(conf.getString("jdbc.planes.url"),
+            conf.getString("jdbc.planes.table"),
+            connectionProperties)
       .as[Plane]
   }
 
