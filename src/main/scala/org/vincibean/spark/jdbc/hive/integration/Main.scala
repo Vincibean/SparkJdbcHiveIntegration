@@ -41,15 +41,18 @@ object Main {
         .join(planes.as("p"), $"f.tailNum" === $"p.tailNum")
         .select(
           $"p.tailNum".as("tailNum"),
+          $"p.aircraftType".as("aircraftType"),
+          $"p.constructionYear".as("constructionYear"),
           $"f.time.actualElapsedTime".as("flightTime"),
           $"f.time.arrivalDelay".as("delay"),
-          ($"f.time.arrivalDelay" / $"f.time.actualElapsedTime").as("ratio")
+          ($"f.time.arrivalDelay" / $"f.time.actualElapsedTime").as(
+            "delayRatio")
         )
         .write
         .jdbc(resultJdbcUrl, resultTable, connectionProperties)
       spark.read
         .jdbc(resultJdbcUrl, resultTable, connectionProperties)
-        .orderBy(desc("ratio"))
+        .orderBy(desc("delayRatio"))
         .show()
     } finally { spark.stop() }
   }
