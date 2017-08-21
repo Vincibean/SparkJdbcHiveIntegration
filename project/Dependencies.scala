@@ -18,7 +18,6 @@ object Dependencies {
       "spark-sql",
       "spark-hive"
     ).map(dep => organization %% dep % version)
-      // .map(_ % "provided")
   }
 
   object h2 extends Dependency {
