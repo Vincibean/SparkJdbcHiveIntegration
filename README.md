@@ -40,6 +40,9 @@ Two run scripts are included:
 - `run.sh` (for *nix systems)
 - `run.bat` (for Windows systems)
 
+## Prerequisites (*nix)
+- You need to have Administrator rights on your laptop
+
 ## Prerequisites (Windows)
 - You need to have the [winutils.exe binary](https://github.com/steveloughran/winutils/raw/master/hadoop-2.7.1/bin/winutils.exe)
 on your machine, and you have to make sure that it is compatible with your system architecture (32- or 64-bit architecture)
