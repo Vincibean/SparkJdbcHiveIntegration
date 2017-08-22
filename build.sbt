@@ -12,6 +12,6 @@ libraryDependencies ++= (spark dependencies) ++ (h2 dependencies) ++ (typesafe d
 
 scalafmtOnCompile in ThisBuild := true
 
-flywayUrl := "jdbc:h2:file:./target/planes"
+flywayUrl := "jdbc:h2:file:./target/PLANES"
 
 flywayUser := "SA"
