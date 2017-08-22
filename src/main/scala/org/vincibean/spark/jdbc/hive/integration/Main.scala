@@ -21,11 +21,17 @@ object Main {
   }
 
   def main(args: Array[String]): Unit = {
+    val wh = sys.props
+      .get("user.dir")
+      .map(x => new java.io.File(x))
+      .map(_.toURI)
+      .map(_.toString)
+      .map(_ + "spark-warehouse")
+      .getOrElse(conf.getString("application.warehouse"))
     val spark = SparkSession
       .builder()
       .appName(conf.getString("application.name"))
-      .config("spark.sql.warehouse.dir",
-              conf.getString("application.warehouse"))
+      .config("spark.sql.warehouse.dir", wh)
       .master(conf.getString("application.master"))
       .enableHiveSupport()
       .getOrCreate()
@@ -64,6 +70,7 @@ object Main {
     val pwd = sys.props
       .get("user.dir")
       .getOrElse(conf.getString("application.defaultWorkingDir"))
+      .replace("""\""", """/""")
     sql(
       s"""
         CREATE EXTERNAL TABLE IF NOT EXISTS flights (
