@@ -1,6 +1,16 @@
 # Apache Spark - JDBC Hive Integration
 A simple example of [JDBC](http://www.oracle.com/technetwork/java/javase/jdbc/index.html) and [Apache Hive](https://hive.apache.org/) integration in [Apache Spark](https://spark.apache.org/).
 
+## Table of Content
+  * [Use Case](#use-case)
+  * [Project Description](#project-description)
+  * [Prerequisites](#prerequisites)
+    + [*nix Systems](#-nix-systems)
+    + [Windows Systems](#windows-systems)
+  * [How To Run It](#how-to-run-it)
+  * [Dataset Description](#dataset-description)
+  * [License](#license)
+
 ## Use Case
 Save relevant information for each delayed flight. A flight is considered delayed if the delay is greater than 15 minutes.
 
