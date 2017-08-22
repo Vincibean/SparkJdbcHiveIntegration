@@ -13,6 +13,14 @@ object Main {
   val resultJdbcUrl: String = conf.getString("jdbc.result.url")
   val resultTable: String = conf.getString("jdbc.result.table")
 
+  val warehouse: String = sys.props
+    .get("user.dir")
+    .map(x => new java.io.File(x))
+    .map(_.toURI)
+    .map(_.toString)
+    .map(_ + "spark-warehouse")
+    .getOrElse(conf.getString("application.warehouse"))
+
   val connectionProperties: Properties = {
     val props = new Properties()
     props.put("user", conf.getString("jdbc.username"))
@@ -21,17 +29,10 @@ object Main {
   }
 
   def main(args: Array[String]): Unit = {
-    val wh = sys.props
-      .get("user.dir")
-      .map(x => new java.io.File(x))
-      .map(_.toURI)
-      .map(_.toString)
-      .map(_ + "spark-warehouse")
-      .getOrElse(conf.getString("application.warehouse"))
     val spark = SparkSession
       .builder()
       .appName(conf.getString("application.name"))
-      .config("spark.sql.warehouse.dir", wh)
+      .config("spark.sql.warehouse.dir", warehouse)
       .master(conf.getString("application.master"))
       .enableHiveSupport()
       .getOrCreate()
@@ -69,8 +70,9 @@ object Main {
     // Determine the current working directory. If not defined default to "/tmp".
     val pwd = sys.props
       .get("user.dir")
+      .map(_.replace("""\""", """/"""))
       .getOrElse(conf.getString("application.defaultWorkingDir"))
-      .replace("""\""", """/""")
+
     sql(
       s"""
         CREATE EXTERNAL TABLE IF NOT EXISTS flights (
